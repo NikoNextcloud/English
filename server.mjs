@@ -30,6 +30,11 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "POST" && url.pathname === "/api/teacher/evaluate") {
+    await handleWritingEvaluation(request, response);
+    return;
+  }
+
   if (request.method === "GET" && url.pathname === "/api/teacher/status") {
     sendJson(response, 200, {
       ready: Boolean(process.env.OPENAI_API_KEY),
@@ -98,6 +103,81 @@ async function handleTeacher(request, response) {
   } catch (error) {
     sendJson(response, 500, { error: "AI teacher failed" });
   }
+}
+
+async function handleWritingEvaluation(request, response) {
+  try {
+    const body = await readJson(request);
+    const answer = String(body.answer || "").trim();
+    if (!answer) {
+      sendJson(response, 400, { error: "Missing answer" });
+      return;
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      sendJson(response, 503, { error: "OPENAI_API_KEY is not configured" });
+      return;
+    }
+
+    const prompt = [
+      "You are an English writing evaluator for Bulgarian learners.",
+      "Return only valid JSON with keys: score, correction, explanation.",
+      "score must be a number from 0 to 100.",
+      "correction should be the best corrected English sentence.",
+      "explanation should be one short Bulgarian explanation.",
+      `Student level: ${String(body.level || "A2")}.`,
+      `Task: ${String(body.prompt || "").slice(0, 400)}`,
+      `Target word: ${String(body.targetWord || "").slice(0, 80)}`,
+      `Grammar focus: ${String(body.grammarTitle || "").slice(0, 80)}`,
+      `Student answer: ${answer.slice(0, 800)}`
+    ].join("\n");
+
+    const aiResponse = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model,
+        input: prompt,
+        max_output_tokens: 220
+      })
+    });
+
+    const data = await aiResponse.json();
+    if (!aiResponse.ok) {
+      sendJson(response, aiResponse.status, { error: data.error?.message || "OpenAI request failed" });
+      return;
+    }
+
+    sendJson(response, 200, parseEvaluation(data.output_text));
+  } catch (error) {
+    sendJson(response, 500, { error: "Writing evaluation failed" });
+  }
+}
+
+function parseEvaluation(text) {
+  try {
+    const parsed = JSON.parse(String(text || "{}").replace(/^```json|```$/g, "").trim());
+    return {
+      score: clampScore(parsed.score),
+      correction: String(parsed.correction || "").slice(0, 500),
+      explanation: String(parsed.explanation || "").slice(0, 500)
+    };
+  } catch (error) {
+    return {
+      score: 60,
+      correction: String(text || "Try writing one clear English sentence.").slice(0, 500),
+      explanation: "AI върна неструктуриран отговор, но можеш да използваш поправката като насока."
+    };
+  }
+}
+
+function clampScore(value) {
+  const score = Number(value);
+  if (!Number.isFinite(score)) return 60;
+  return Math.max(0, Math.min(100, Math.round(score)));
 }
 
 function buildTeacherPrompt(body) {

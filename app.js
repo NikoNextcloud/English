@@ -1,4 +1,4 @@
-const storageKey = "wordjoy-english-progress-v2";
+const storageKey = "wordjoy-english-progress-v3";
 
 const defaultState = {
   user: null,
@@ -10,6 +10,7 @@ const defaultState = {
   reviews: {},
   chat: [{ from: "ai", text: "Hello! I am your English teacher. What is your name?" }],
   aiStatus: "checking",
+  aiSpeaking: false,
   stats: { correct: 0, total: 0, streakAnswers: 0 }
 };
 
@@ -82,6 +83,26 @@ function speak(text) {
   window.speechSynthesis.speak(utterance);
 }
 
+function speakTeacher(text) {
+  if (!window.speechSynthesis) return;
+  const cleanText = text.replace(/[#*_`]/g, "").slice(0, 700);
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = cleanText.match(/[а-яА-Я]/) ? "bg-BG" : "en-US";
+  utterance.rate = 0.95;
+  utterance.onstart = () => {
+    state.aiSpeaking = true;
+    render();
+    scrollChatToBottom();
+  };
+  utterance.onend = () => {
+    state.aiSpeaking = false;
+    render();
+    scrollChatToBottom();
+  };
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
+}
+
 function listenFor(word) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
@@ -93,6 +114,21 @@ function listenFor(word) {
   recognition.onresult = (event) => {
     const heard = event.results[0][0].transcript.toLowerCase();
     showToast(heard.includes(word.english.toLowerCase()) ? "Great pronunciation!" : `I heard "${heard}". Try again slowly.`);
+  };
+  recognition.start();
+}
+
+function dictateToChat() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showToast("Гласовият вход изисква Chrome или Edge.");
+    return;
+  }
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.onresult = (event) => {
+    const input = document.querySelector("#chatForm input[name='message']");
+    if (input) input.value = event.results[0][0].transcript;
   };
   recognition.start();
 }
@@ -114,6 +150,7 @@ function normalize(value) {
 function render() {
   document.getElementById("app").innerHTML = state.user ? appTemplate() : registerTemplate();
   bindEvents();
+  scrollChatToBottom();
   if (state.user && state.aiStatus === "checking") checkAiStatus();
 }
 
@@ -122,8 +159,8 @@ function registerTemplate() {
     <section class="register-layout">
       <div class="hero-copy">
         <p class="eyebrow">WordJoy English</p>
-        <h1>Учи английски като игра: кратки задачи, серии и бърза обратна връзка.</h1>
-        <p>Всеки ден получаваш малък урок с 10 думи, звук, картинки и упражнения за A1, A2, B1-B2 и C1-C2.</p>
+        <h1>Учи английски като игра: думи, граматика, писане и AI учител в един поток.</h1>
+        <p>Всеки урок смесва кратко правило, микрозадача, писане и разговор, за да учиш като в реална сесия с преподавател.</p>
         <img class="hero-image" src="assets/teacher-hero.png" alt="Friendly virtual English teacher with flashcards" />
       </div>
       <form class="auth-panel" id="registerForm">
@@ -154,13 +191,13 @@ function appTemplate() {
       <div class="nav-pills">
         <button data-scroll="dashboard">Пътека</button>
         <button data-scroll="lesson">Урок</button>
+        <button data-scroll="coach">Coach</button>
         <button data-scroll="chat">AI чат</button>
-        <button data-scroll="stats">Статистика</button>
       </div>
     </nav>
     ${dashboardTemplate()}
     ${lessonTemplate()}
-    ${grammarTemplate()}
+    ${coachTemplate()}
     ${chatTemplate()}
     ${statsTemplate()}
   `;
@@ -174,11 +211,11 @@ function dashboardTemplate() {
     <section id="dashboard" class="dashboard duo-dashboard">
       <div class="welcome">
         <p class="eyebrow">Привет, ${state.user.name}!</p>
-        <h1>Продължи по учебната пътека.</h1>
+        <h1>Днес учиш с думи, правило и AI писане.</h1>
         <p>Следващ урок: <strong>${lesson.title}</strong>. Напредък за ниво ${levelName(state.activeLevel)}: ${courseProgress()}%.</p>
         <div class="dashboard-actions">
           <button class="primary-button big-action" data-start-lesson>Стартирай урока</button>
-          <button class="ghost-button" data-scroll="lesson">Виж урока</button>
+          <button class="ghost-button" data-scroll="chat">Говори с AI</button>
         </div>
       </div>
       <div class="path-panel">
@@ -190,7 +227,7 @@ function dashboardTemplate() {
       </div>
       <div class="metric"><span>🔥</span><strong>${state.streak} дни</strong><small>дневна серия</small></div>
       <div class="metric"><span>💎</span><strong>${state.xp} XP</strong><small>точки</small></div>
-      <div class="metric"><span>📚</span><strong>${lessonNumber}/${lessons.length}</strong><small>текущ урок</small></div>
+      <div class="metric"><span>✍️</span><strong>AI writing</strong><small>във всеки урок</small></div>
       <div class="progress-line"><span style="width:${courseProgress()}%"></span></div>
       <p class="progress-caption">${courseProgress()}% завършен курс за ниво ${levelName(state.activeLevel)}</p>
     </section>
@@ -199,12 +236,13 @@ function dashboardTemplate() {
 
 function pathTemplate(lessons) {
   const currentId = nextLesson().id;
+  const currentIndex = lessons.findIndex((item) => item.id === currentId);
   return `
     <div class="lesson-path">
       ${lessons.slice(0, 12).map((lesson, index) => {
         const completed = state.completedLessons.includes(lesson.id);
         const current = lesson.id === currentId;
-        const locked = !completed && !current && index > lessons.findIndex((item) => item.id === currentId);
+        const locked = !completed && !current && index > currentIndex;
         return `
           <button class="path-node ${completed ? "done" : ""} ${current ? "current" : ""} ${locked ? "locked" : ""}" ${current ? "data-start-lesson" : ""}>
             <span>${completed ? "✓" : locked ? "🔒" : index + 1}</span>
@@ -226,12 +264,13 @@ function lessonTemplate() {
 function lessonStartTemplate(lesson) {
   const lessons = levelLessons();
   const lessonNumber = lessons.findIndex((item) => item.id === lesson.id) + 1;
+  const grammar = grammarForLesson(lesson);
   return `
     <section id="lesson" class="lesson-stage">
       <div class="lesson-intro">
         <p class="eyebrow">${levelName(lesson.level)} · ${lesson.theme}</p>
         <h2>${lesson.title}</h2>
-        <p>Урокът е като игра: имаш 5 сърца, кратки задачи, моментална проверка и финален отчет с грешките.</p>
+        <p>Урокът вече е една цяла мини сесия: дума → правило → задача → писане → AI feedback → точки.</p>
         <div class="lesson-progress-card">
           <div>
             <strong>Урок ${lessonNumber} от ${lessons.length}</strong>
@@ -242,8 +281,10 @@ function lessonStartTemplate(lesson) {
         <button class="primary-button big-action" data-start-lesson>Старт</button>
       </div>
       <div class="skill-preview">
-        <h3>Днес ще тренираш</h3>
-        ${lesson.words.slice(0, 6).map((word) => `
+        <h3>Днешна концепция</h3>
+        <article><span>🧩</span><div><strong>${grammar.title}</strong><small>${grammar.rule}</small></div></article>
+        <article><span>✍️</span><div><strong>AI writing</strong><small>Ще напишеш свое изречение и AI ще го оцени.</small></div></article>
+        ${lesson.words.slice(0, 4).map((word) => `
           <article>
             <span>${iconFor(word.image || word.category)}</span>
             <div><strong>${word.english}</strong><small>${word.bulgarian}</small></div>
@@ -276,10 +317,11 @@ function lessonSlideTemplate(lesson) {
 
 function slideTemplate(slide, answer) {
   if (slide.type === "teach") return teachSlideTemplate(slide.word);
-  if (slide.type === "choice") return choiceSlideTemplate(slide, answer);
-  if (slide.type === "text") return textSlideTemplate(slide, answer);
+  if (slide.type === "grammar-rule") return grammarRuleSlideTemplate(slide);
+  if (slide.type === "choice" || slide.type === "listen") return choiceSlideTemplate(slide, answer);
+  if (slide.type === "text" || slide.type === "grammar-input") return textSlideTemplate(slide, answer);
   if (slide.type === "order") return orderSlideTemplate(slide, answer);
-  if (slide.type === "listen") return choiceSlideTemplate(slide, answer);
+  if (slide.type === "ai-writing") return aiWritingSlideTemplate(slide, answer);
   return "";
 }
 
@@ -296,6 +338,19 @@ function teachSlideTemplate(word) {
         <button title="Repeat" data-repeat="${word.id}">🎙️ Повтори</button>
       </div>
       <button class="primary-button check-button" data-next-slide>Продължи</button>
+    </article>
+  `;
+}
+
+function grammarRuleSlideTemplate(slide) {
+  return `
+    <article class="learning-slide grammar-card">
+      <div class="slide-visual">🧩</div>
+      <p class="eyebrow">Мини правило</p>
+      <h2>${slide.title}</h2>
+      <p class="translation">${slide.rule}</p>
+      <p class="example">${slide.example}</p>
+      <button class="primary-button check-button" data-next-slide>Ясно, давай задача</button>
     </article>
   `;
 }
@@ -340,13 +395,34 @@ function orderSlideTemplate(slide, answer) {
   `;
 }
 
+function aiWritingSlideTemplate(slide, answer) {
+  return `
+    <article class="learning-slide exercise-slide duo-question writing-slide">
+      <p class="eyebrow">AI writing coach</p>
+      <h2>${slide.question}</h2>
+      <p>${slide.hint}</p>
+      <textarea id="writingInput" class="writing-input" placeholder="Write your sentence here..." ${answer ? "disabled" : ""}>${answer?.given || ""}</textarea>
+      ${!answer ? `<button class="primary-button check-button" data-ai-writing="${slide.id}">Изпрати за AI оценка</button>` : ""}
+      ${answer?.correction ? `
+        <div class="ai-writing-feedback">
+          <strong>AI feedback: ${answer.score}/100</strong>
+          <p>${answer.correction}</p>
+          <small>${answer.explanation}</small>
+        </div>
+      ` : ""}
+    </article>
+  `;
+}
+
 function feedbackTemplate(slide, answer, slides) {
   const last = lessonRun.slideIndex === slides.length - 1;
+  const label = answer.correct ? "Вярно!" : slide.type === "ai-writing" ? "AI даде препоръка:" : "Почти. Запомни верния отговор:";
+  const detail = slide.type === "ai-writing" ? `+${answer.points || 0} XP` : answer.correct ? `+${answer.points || 10} XP` : slide.answer;
   return `
     <div class="feedback-bar ${answer.correct ? "correct-feedback" : "wrong-feedback"}">
       <div>
-        <strong>${answer.correct ? "Вярно!" : "Почти. Запомни верния отговор:"}</strong>
-        <p>${answer.correct ? "+10 XP" : slide.answer}</p>
+        <strong>${label}</strong>
+        <p>${detail}</p>
       </div>
       <button class="primary-button" data-next-slide>${last ? "Виж резултата" : "Продължи"}</button>
     </div>
@@ -354,25 +430,25 @@ function feedbackTemplate(slide, answer, slides) {
 }
 
 function lessonResultTemplate(lesson) {
-  const totalExercises = buildLessonSlides(lesson).filter((slide) => slide.type !== "teach").length;
+  const totalExercises = buildLessonSlides(lesson).filter((slide) => !["teach", "grammar-rule"].includes(slide.type)).length;
   const mistakes = lessonRun.mistakes;
   return `
     <section id="lesson" class="lesson-stage single">
       <div class="result-panel duo-result">
         <p class="eyebrow">Урокът приключи</p>
-        <h2>${mistakes.length === 0 ? "Страхотна серия!" : `Имаш ${mistakes.length} грешки`}</h2>
+        <h2>${mistakes.length === 0 ? "Страхотна сесия!" : `Имаш ${mistakes.length} неща за повторение`}</h2>
         <div class="result-grid">
-          <article><strong>${totalExercises - mistakes.length}/${totalExercises}</strong><small>верни задачи</small></article>
+          <article><strong>${totalExercises - mistakes.length}/${totalExercises}</strong><small>силни задачи</small></article>
           <article><strong>${lessonRun.hearts}/5</strong><small>останали сърца</small></article>
           <article><strong>+${lessonRun.xpEarned} XP</strong><small>спечелени точки</small></article>
         </div>
         <div class="mistake-list">
-          <h3>Грешки за повторение</h3>
+          <h3>Повтори това</h3>
           ${mistakes.length === 0 ? `<p class="good">Нямаш грешки в този урок.</p>` : mistakes.map((mistake) => `
             <article>
               <strong>${mistake.question}</strong>
               <span>Ти: ${mistake.given || "празен отговор"}</span>
-              <span>Верен отговор: ${mistake.answer}</span>
+              <span>Правилен/по-добър вариант: ${mistake.answer}</span>
             </article>
           `).join("")}
         </div>
@@ -387,42 +463,47 @@ function lessonResultTemplate(lesson) {
 
 function buildLessonSlides(lesson) {
   const w = lesson.words;
+  const grammar = grammarForLesson(lesson);
   return [
     { id: `teach-${w[0].id}`, type: "teach", word: w[0] },
-    { id: "choice-apple", type: "choice", title: "Избери превода", question: `Какво означава "${w[0].english}"?`, answer: w[0].bulgarian, options: shuffle([w[0].bulgarian, w[1].bulgarian, w[2].bulgarian]) },
+    { id: "choice-1", type: "choice", title: "Избери превода", question: `Какво означава "${w[0].english}"?`, answer: w[0].bulgarian, options: shuffle([w[0].bulgarian, w[1].bulgarian, w[2].bulgarian]) },
+    { id: "grammar-rule", type: "grammar-rule", ...grammar },
+    { id: "grammar-input", type: "grammar-input", title: "Граматика в действие", question: grammar.prompt, answer: grammar.answer },
     { id: `teach-${w[1].id}`, type: "teach", word: w[1] },
     { id: "listen-1", type: "listen", title: "Слушане", question: "Какво чу?", answer: w[1].sentence, options: shuffle([w[1].sentence, w[2].sentence, w[3].sentence]), audio: w[1].sentence },
-    { id: `teach-${w[2].id}`, type: "teach", word: w[2] },
     { id: "translate-1", type: "text", title: "Преведи", question: `${w[2].bulgarian}`, answer: w[2].english },
-    { id: `teach-${w[3].id}`, type: "teach", word: w[3] },
+    { id: "writing-1", type: "ai-writing", question: `Напиши едно изречение с "${w[2].english}" и правилото "${grammar.title}".`, hint: "AI ще ти даде оценка, поправка и кратко обяснение.", targetWord: w[2].english, grammarTitle: grammar.title },
     { id: "order-1", type: "order", title: "Подреди изречението", question: "am / I / student / a", answer: "I am a student", options: shuffle(["I am a student", "I student am a", "A student I am"]) },
     { id: `teach-${w[4].id}`, type: "teach", word: w[4] },
     { id: "choice-2", type: "choice", title: "Избери думата", question: `What is "${w[4].bulgarian}"?`, answer: w[4].english, options: shuffle([w[4].english, w[5].english, w[6].english]) },
-    { id: "translate-2", type: "text", title: "Напиши на английски", question: `${w[7].bulgarian}`, answer: w[7].english },
-    { id: "listen-2", type: "listen", title: "Слушане", question: "Избери правилното изречение", answer: w[8].sentence, options: shuffle([w[8].sentence, w[6].sentence, w[9].sentence]), audio: w[8].sentence }
+    { id: "writing-2", type: "ai-writing", question: `Отговори на английски: What do you usually do every day?`, hint: `Използвай поне една дума от урока: ${w.slice(0, 5).map((word) => word.english).join(", ")}.`, targetWord: w[4].english, grammarTitle: grammar.title }
   ];
+}
+
+function grammarForLesson(lesson) {
+  const index = levelLessons().findIndex((item) => item.id === lesson.id);
+  return GRAMMAR_MODULES[index % GRAMMAR_MODULES.length];
 }
 
 function shuffle(items) {
   return [...items].sort(() => Math.random() - 0.5);
 }
 
-function grammarTemplate() {
+function coachTemplate() {
+  const grammar = grammarForLesson(nextLesson());
   return `
-    <section class="grammar-section">
+    <section id="coach" class="coach-section">
       <div>
-        <p class="eyebrow">Граматика</p>
-        <h2>Мини правила, после практика.</h2>
+        <p class="eyebrow">Grammar + AI writing</p>
+        <h2>Граматиката вече е част от урока.</h2>
+        <p>Вместо отделни сухи правила, всяка сесия ти дава мини концепция, задача и AI писмен feedback с точки.</p>
       </div>
-      <div class="grammar-grid">
-        ${GRAMMAR_MODULES.map((module) => `
-          <article>
-            <h3>${module.title}</h3>
-            <p>${module.rule}</p>
-            <strong>${module.example}</strong>
-            <label>${module.prompt}<input data-grammar="${module.answer}" placeholder="answer" /></label>
-          </article>
-        `).join("")}
+      <div class="coach-card">
+        <span>🧩</span>
+        <h3>${grammar.title}</h3>
+        <p>${grammar.rule}</p>
+        <strong>${grammar.example}</strong>
+        <button class="primary-button" data-start-lesson>Тренирай в урока</button>
       </div>
     </section>
   `;
@@ -431,10 +512,18 @@ function grammarTemplate() {
 function chatTemplate() {
   return `
     <section id="chat" class="chat-section">
-      <div>
+      <div class="teacher-panel">
         <p class="eyebrow">AI Teacher</p>
         <h2>Разговор с виртуален учител</h2>
-        <p>Чатът поправя грешки, предлага нови думи и обяснява граматика.</p>
+        <p>Пиши или говори. Учителят може да ти отговори с глас и да ти даде кратка поправка.</p>
+        <div class="teacher-avatar ${state.aiSpeaking ? "speaking" : ""}" aria-hidden="true">
+          <div class="teacher-head">
+            <div class="teacher-eye left"></div>
+            <div class="teacher-eye right"></div>
+            <div class="teacher-mouth"></div>
+          </div>
+          <div class="teacher-neck"></div>
+        </div>
         <div class="ai-status ${state.aiStatus === "active" ? "online" : "demo"}">
           <strong>${state.aiStatus === "active" ? "AI активен" : state.aiStatus === "checking" ? "Проверявам AI връзката..." : "Демо режим"}</strong>
           <small>${state.aiStatus === "active" ? "Свързан е със server и OpenAI API ключ." : "Стартирай server-а с OPENAI_API_KEY, за да работи с реален AI."}</small>
@@ -445,6 +534,7 @@ function chatTemplate() {
           ${state.chat.map((message) => `<p class="${message.from}">${message.text}</p>`).join("")}
         </div>
         <form id="chatForm" class="chat-form">
+          <button type="button" class="mic-button" id="dictateButton" title="Говори">🎙️</button>
           <input name="message" placeholder="My name is Ivan..." autocomplete="off" />
           <button type="submit">Изпрати</button>
         </form>
@@ -460,7 +550,7 @@ function statsTemplate() {
       <article><span>✅</span><strong>${state.stats.correct}/${state.stats.total}</strong><small>верни отговори</small></article>
       <article><span>🔁</span><strong>${dueReviews}</strong><small>думи за повторение днес</small></article>
       <article><span>🏁</span><strong>${state.completedLessons.length}</strong><small>завършени уроци</small></article>
-      <article><span>🗄️</span><strong>Users · Lessons · Words · Progress</strong><small>модел за база данни</small></article>
+      <article><span>✍️</span><strong>AI writing</strong><small>оценка и поправки</small></article>
     </section>
   `;
 }
@@ -520,13 +610,14 @@ function bindEvents() {
     });
   });
 
-  document.querySelectorAll("[data-grammar]").forEach((input) => {
-    input.addEventListener("change", () => {
-      const ok = normalize(input.value) === normalize(input.dataset.grammar);
-      input.classList.toggle("correct", ok);
-      if (ok) addXp(10);
+  document.querySelectorAll("[data-ai-writing]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const slide = buildLessonSlides(nextLesson()).find((item) => item.id === button.dataset.aiWriting);
+      submitWritingAnswer(slide, document.getElementById("writingInput").value);
     });
   });
+
+  document.querySelector("#dictateButton")?.addEventListener("click", dictateToChat);
 
   document.querySelector("#chatForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -537,7 +628,7 @@ function bindEvents() {
     event.target.reset();
     saveState();
     render();
-    document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
+    scrollChatToBottom();
     askAiTeacher(text);
   });
 }
@@ -571,14 +662,15 @@ function submitSlideAnswer(slide, given) {
   if (lessonRun.answers[slide.id]) return;
 
   const correct = normalize(given) === normalize(slide.answer);
-  lessonRun.answers[slide.id] = { given, correct };
+  const points = correct ? 10 : 0;
+  lessonRun.answers[slide.id] = { given, correct, points };
   state.stats.total += 1;
 
   if (correct) {
     state.stats.correct += 1;
     state.stats.streakAnswers += 1;
-    lessonRun.xpEarned += 10;
-    addXp(10);
+    lessonRun.xpEarned += points;
+    addXp(points);
     if (state.stats.streakAnswers % 5 === 0) {
       lessonRun.xpEarned += 50;
       addXp(50);
@@ -592,6 +684,76 @@ function submitSlideAnswer(slide, given) {
   saveState();
   render();
   document.getElementById("lesson")?.scrollIntoView({ behavior: "smooth" });
+}
+
+async function submitWritingAnswer(slide, given) {
+  if (lessonRun.answers[slide.id]) return;
+  if (!given.trim()) {
+    showToast("Напиши поне едно изречение.");
+    return;
+  }
+
+  lessonRun.answers[slide.id] = { given, correct: true, points: 0, correction: "AI проверява..." };
+  render();
+
+  const result = await evaluateWriting(slide, given);
+  const correct = result.score >= 60;
+  const points = result.score >= 85 ? 25 : result.score >= 60 ? 15 : result.score >= 35 ? 5 : 0;
+
+  lessonRun.answers[slide.id] = {
+    given,
+    correct,
+    points,
+    score: result.score,
+    correction: result.correction,
+    explanation: result.explanation
+  };
+
+  state.stats.total += 1;
+  if (correct) {
+    state.stats.correct += 1;
+    state.stats.streakAnswers += 1;
+    lessonRun.xpEarned += points;
+    addXp(points);
+  } else {
+    state.stats.streakAnswers = 0;
+    lessonRun.hearts = Math.max(0, lessonRun.hearts - 1);
+    lessonRun.mistakes.push({ question: slide.question, given, answer: result.correction });
+  }
+
+  saveState();
+  render();
+}
+
+async function evaluateWriting(slide, answer) {
+  try {
+    const response = await fetch("/api/teacher/evaluate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        answer,
+        prompt: slide.question,
+        level: state.activeLevel,
+        targetWord: slide.targetWord,
+        grammarTitle: slide.grammarTitle
+      })
+    });
+    if (!response.ok) throw new Error("Evaluation unavailable");
+    return await response.json();
+  } catch (error) {
+    return localWritingEvaluation(slide, answer);
+  }
+}
+
+function localWritingEvaluation(slide, answer) {
+  const hasTarget = normalize(answer).includes(normalize(slide.targetWord));
+  const hasVerb = /\b(am|is|are|was|were|work|works|go|goes|like|likes|have|has|do|does|study|studies)\b/i.test(answer);
+  const score = Math.min(100, 35 + (hasTarget ? 35 : 0) + (hasVerb ? 20 : 0) + (answer.length > 18 ? 10 : 0));
+  return {
+    score,
+    correction: hasTarget ? answer.trim() : `${answer.trim()} (${slide.targetWord})`,
+    explanation: hasTarget ? "Добър опит. AI backend не е достъпен, затова оценката е локална." : `Опитай да използваш думата "${slide.targetWord}".`
+  };
 }
 
 function finishLesson() {
@@ -661,9 +823,16 @@ async function askAiTeacher(text) {
     state.chat[pendingIndex].text = teacherReply(text);
   }
 
+  const reply = state.chat[pendingIndex].text;
   saveState();
   render();
-  document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
+  scrollChatToBottom();
+  speakTeacher(reply);
+}
+
+function scrollChatToBottom() {
+  const messages = document.getElementById("messages");
+  if (messages) messages.scrollTop = messages.scrollHeight;
 }
 
 function teacherReply(text) {
