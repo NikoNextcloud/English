@@ -1323,3 +1323,238 @@ select {
     flex-direction: column;
   }
 }
+
+/* Dark aligned theme */
+:root {
+  --ink: #f7fbff;
+  --muted: #a9b8c8;
+  --paper: hsl(201.18deg 29.82% 11.18%);
+  --panel: hsl(202deg 28% 15%);
+  --panel-strong: hsl(202deg 30% 18%);
+  --line: rgba(255, 255, 255, 0.12);
+  --teal: #1cb0f6;
+  --coral: #ff4b4b;
+  --yellow: #ffc800;
+  --blue: #1cb0f6;
+  --green: #58cc02;
+  --lime-soft: rgba(88, 204, 2, 0.18);
+  --blue-soft: rgba(28, 176, 246, 0.18);
+  --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.topbar {
+  background: rgba(17, 31, 38, 0.92);
+}
+
+.auth-panel,
+.welcome,
+.daily-words-panel,
+.path-panel,
+.metric,
+.lesson-intro,
+.slide-shell,
+.result-panel,
+.skill-preview,
+.word-card,
+.grammar-grid article,
+.stats-section article,
+.teacher-panel,
+.chat-box,
+.coach-card {
+  background: var(--panel);
+  border-color: var(--line);
+  box-shadow: var(--shadow);
+}
+
+.dashboard,
+.section-grid,
+.chat-section,
+.stats-section,
+.grammar-section,
+.lesson-stage {
+  align-items: stretch;
+}
+
+.dashboard > *,
+.chat-section > *,
+.stats-section > *,
+.grammar-grid > *,
+.word-grid > *,
+.lesson-stage > * {
+  border-radius: 8px;
+}
+
+input,
+select,
+textarea,
+.ghost-button,
+.top-status span,
+.nav-pills button,
+.card-actions button,
+.choice-list button,
+.daily-word-list article,
+.skill-preview article,
+.lesson-progress-card,
+.choice-grid button,
+.word-bank button,
+.result-grid article,
+.mistake-list article,
+.close-lesson {
+  background: var(--panel-strong);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.primary-button {
+  background: var(--green);
+  color: #ffffff;
+  box-shadow: 0 5px 0 #46a302;
+}
+
+.google-button {
+  background: var(--blue-soft);
+  color: #78dcff;
+}
+
+.metric span,
+.stats-section span,
+.daily-word-list span,
+.word-image,
+.slide-visual,
+.skill-preview article > span,
+.path-node span {
+  background: linear-gradient(135deg, var(--blue), #76e4ff);
+  color: #061821;
+}
+
+.daily-word-list article:nth-child(2n) span,
+.metric:nth-child(2n) span {
+  background: linear-gradient(135deg, var(--yellow), #fff176);
+}
+
+.daily-word-list article:nth-child(3n) span,
+.metric:nth-child(3n) span {
+  background: linear-gradient(135deg, var(--green), #b9f96b);
+}
+
+.progress-line,
+.mini-progress {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.progress-line span,
+.mini-progress span {
+  background: linear-gradient(90deg, var(--green), var(--yellow), var(--blue));
+}
+
+.path-node {
+  background: var(--panel-strong);
+  border-color: var(--line);
+  box-shadow: 0 6px 0 rgba(255, 255, 255, 0.08);
+}
+
+.path-node.current {
+  background: var(--green);
+  border-color: #48ad00;
+  box-shadow: 0 7px 0 #46a302;
+}
+
+.path-node.done {
+  background: var(--lime-soft);
+  border-color: var(--green);
+}
+
+.learning-slide {
+  background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+  border-color: var(--line);
+}
+
+.teach-card {
+  background: var(--panel);
+  border-color: var(--blue);
+}
+
+.grammar-card {
+  background: rgba(255, 200, 0, 0.12);
+  border-color: var(--yellow);
+}
+
+.messages .ai {
+  background: rgba(28, 176, 246, 0.16);
+}
+
+.messages .user {
+  background: rgba(88, 204, 2, 0.18);
+}
+
+.choice-grid button:hover,
+.word-bank button:hover,
+.choice-grid button.selected,
+.word-bank button.selected {
+  background: var(--blue-soft);
+}
+
+.ai-writing-feedback {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+}
+
+.dashboard {
+  grid-auto-rows: minmax(130px, auto);
+}
+
+.welcome,
+.daily-words-panel,
+.path-panel,
+.metric-stack,
+.chat-box,
+.teacher-panel {
+  min-height: 100%;
+}
+
+.metric-stack {
+  grid-auto-rows: minmax(92px, 1fr);
+}
+
+.metric {
+  min-height: 92px;
+}
+
+.daily-word-list article {
+  min-height: 64px;
+}
+
+.path-panel,
+.daily-words-panel,
+.welcome {
+  display: grid;
+  align-content: start;
+}
+
+.chat-section {
+  grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr);
+}
+
+.teacher-panel {
+  min-height: 420px;
+}
+
+.chat-box {
+  min-height: 420px;
+}
+
+@media (max-width: 900px) {
+  .chat-section {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-panel,
+  .chat-box {
+    min-height: auto;
+  }
+}
