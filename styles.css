@@ -1380,6 +1380,46 @@ body {
   align-items: stretch;
 }
 
+.dashboard,
+.lesson-stage,
+.chat-section,
+.stats-section {
+  width: min(100%, 720px);
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.dashboard {
+  max-width: 720px;
+}
+
+.chat-section {
+  max-width: 720px;
+}
+
+.lesson-stage {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lesson-stage.single {
+  width: min(100%, 720px);
+}
+
+.stats-section {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.topbar {
+  justify-content: center;
+}
+
+.topbar > * {
+  max-width: 720px;
+}
+
 .dashboard > *,
 .chat-section > *,
 .stats-section > *,
@@ -1550,6 +1590,20 @@ textarea,
 
 @media (max-width: 900px) {
   .chat-section {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard,
+  .lesson-stage,
+  .chat-section,
+  .stats-section {
+    width: min(100%, 560px);
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .lesson-stage,
+  .stats-section {
     grid-template-columns: 1fr;
   }
 
