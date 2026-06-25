@@ -119,6 +119,7 @@ select {
 
 .primary-button,
 .google-button,
+.ghost-button,
 .listen-button,
 .chat-form button {
   border: 0;
@@ -135,6 +136,18 @@ select {
 .google-button {
   background: #f1f5ff;
   color: var(--blue);
+}
+
+.ghost-button {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+}
+
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .topbar {
@@ -229,6 +242,191 @@ select {
   display: block;
   height: 100%;
   background: linear-gradient(90deg, var(--teal), var(--yellow), var(--coral));
+}
+
+.progress-caption {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.lesson-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: 24px;
+  padding: 34px;
+  align-items: start;
+}
+
+.lesson-stage.single {
+  display: block;
+}
+
+.lesson-intro,
+.slide-shell,
+.result-panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.lesson-intro p,
+.result-panel p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.lesson-progress-card {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfaf5;
+}
+
+.lesson-progress-card div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lesson-progress-card small {
+  color: var(--muted);
+}
+
+.mini-progress {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #ece8dc;
+}
+
+.mini-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--yellow), var(--coral));
+}
+
+.preview-words {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.word-card.compact {
+  min-height: 170px;
+}
+
+.slide-shell,
+.result-panel {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.slide-top {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.learning-slide {
+  min-height: 430px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff, #fbfaf5);
+}
+
+.learning-slide h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4.2rem);
+  letter-spacing: 0;
+}
+
+.slide-visual {
+  width: 112px;
+  height: 112px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #e9fbf7;
+  font-size: 4.2rem;
+}
+
+.translation {
+  margin: 0;
+  color: var(--coral);
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.example {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.card-actions.center {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.exercise-slide {
+  place-items: stretch;
+  text-align: left;
+}
+
+.exercise-slide h2 {
+  font-size: clamp(1.65rem, 4vw, 2.8rem);
+}
+
+.slide-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.result-grid article,
+.mistake-list article {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfaf5;
+}
+
+.result-grid strong {
+  font-size: 1.45rem;
+}
+
+.result-grid small,
+.mistake-list span {
+  color: var(--muted);
+}
+
+.mistake-list {
+  display: grid;
+  gap: 10px;
 }
 
 .section-grid,
@@ -415,6 +613,7 @@ select {
 @media (max-width: 900px) {
   .register-layout,
   .dashboard,
+  .lesson-stage,
   .section-grid,
   .chat-section {
     grid-template-columns: 1fr;
@@ -433,5 +632,14 @@ select {
   .hero-copy h1,
   .welcome h1 {
     font-size: 2.4rem;
+  }
+
+  .preview-words {
+    grid-template-columns: 1fr;
+  }
+
+  .lesson-progress-card div:first-child,
+  .slide-actions {
+    flex-direction: column;
   }
 }
