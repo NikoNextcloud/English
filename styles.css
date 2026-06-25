@@ -166,6 +166,76 @@ select {
   border-bottom: 1px solid var(--line);
 }
 
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.brand-mark {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #58cc02, #b9ff39);
+  box-shadow: 0 5px 0 #46a302, 0 0 24px rgba(88, 204, 2, 0.35);
+}
+
+.brand-leaf {
+  position: absolute;
+  width: 18px;
+  height: 24px;
+  top: 7px;
+  left: 12px;
+  border-radius: 90% 10% 90% 10%;
+  background: #ffffff;
+  transform: rotate(-28deg);
+}
+
+.brand-leaf::after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 18px;
+  left: 8px;
+  top: 3px;
+  border-radius: 999px;
+  background: #58cc02;
+}
+
+.brand-book {
+  position: absolute;
+  width: 24px;
+  height: 12px;
+  bottom: 8px;
+  border-radius: 3px 3px 6px 6px;
+  background: #0f252e;
+}
+
+.brand-book::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 2px;
+  width: 2px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.brand-word {
+  font-size: 1.05rem;
+  background: linear-gradient(90deg, #ffffff, #b9ff39);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 .top-status {
   display: flex;
   flex-wrap: wrap;

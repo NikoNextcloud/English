@@ -159,7 +159,7 @@ function registerTemplate() {
   return `
     <section class="register-layout">
       <div class="hero-copy">
-        <p class="eyebrow">WordJoy English</p>
+        ${logoTemplate()}
         <h1>Учи английски като игра: думи, граматика, писане и AI учител в един поток.</h1>
         <p>Всеки урок смесва кратко правило, микрозадача, писане и разговор, за да учиш като в реална сесия с преподавател.</p>
         <img class="hero-image" src="assets/teacher-hero.png" alt="Friendly virtual English teacher with flashcards" />
@@ -191,7 +191,7 @@ function appTemplate() {
 
   return `
     <nav class="topbar">
-      <strong>WordJoy English</strong>
+      ${logoTemplate()}
       <div class="top-status">
         <span>🔥 ${state.streak}</span>
         <span>💎 ${state.xp}</span>
@@ -207,6 +207,18 @@ function appTemplate() {
     ${lessonTemplate()}
     ${chatTemplate()}
     ${statsTemplate()}
+  `;
+}
+
+function logoTemplate() {
+  return `
+    <a class="brand-logo" href="#dashboard" aria-label="LinguaLeaf">
+      <span class="brand-mark" aria-hidden="true">
+        <span class="brand-leaf"></span>
+        <span class="brand-book"></span>
+      </span>
+      <span class="brand-word">LinguaLeaf</span>
+    </a>
   `;
 }
 
