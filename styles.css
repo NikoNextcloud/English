@@ -3,11 +3,13 @@
   --muted: #667085;
   --paper: #fffdf8;
   --line: #e7e2d6;
-  --teal: #1aa6a1;
-  --coral: #ff6b5f;
-  --yellow: #f8c64e;
-  --blue: #4267d8;
-  --green: #55b870;
+  --teal: #1cb0f6;
+  --coral: #ff4b4b;
+  --yellow: #ffc800;
+  --blue: #1cb0f6;
+  --green: #58cc02;
+  --lime-soft: #ddf4c7;
+  --blue-soft: #ddf4ff;
   --shadow: 0 18px 45px rgba(24, 33, 47, 0.11);
 }
 
@@ -129,7 +131,7 @@ select {
 }
 
 .primary-button {
-  background: var(--teal);
+  background: var(--green);
   color: #fff;
 }
 
@@ -195,22 +197,29 @@ select {
 
 .dashboard {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
   gap: 18px;
   padding: 34px;
   align-items: start;
+  max-width: 1220px;
+  margin: 0 auto;
 }
 
 .welcome,
 .hero-card {
-  min-height: 340px;
+  min-height: 0;
 }
 
 .welcome {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 18px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 24px;
 }
 
 .hero-card {
@@ -228,14 +237,23 @@ select {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 18px;
+  padding: 14px 16px;
   display: grid;
-  gap: 6px;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  align-items: center;
   min-height: 0;
 }
 
 .metric span,
 .stats-section span {
+  grid-row: 1 / span 2;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--blue-soft);
   font-size: 1.55rem;
 }
 
@@ -256,7 +274,7 @@ select {
 .progress-line span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--teal), var(--yellow), var(--coral));
+  background: linear-gradient(90deg, var(--green), var(--yellow), var(--blue));
 }
 
 .progress-caption {
@@ -267,21 +285,26 @@ select {
 }
 
 .duo-dashboard {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
 }
 
 .big-action {
   min-width: 190px;
-  box-shadow: 0 6px 0 #0d7773;
+  box-shadow: 0 6px 0 #46a302;
   transform: translateY(-2px);
 }
 
+.daily-words-panel,
 .path-panel {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow);
-  padding: 24px;
+  padding: 18px;
+}
+
+.daily-words-panel {
+  grid-row: span 2;
 }
 
 .path-header {
@@ -296,11 +319,48 @@ select {
   font-weight: 800;
 }
 
+.daily-word-list {
+  display: grid;
+  gap: 10px;
+}
+
+.daily-word-list article {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 64px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffef8;
+}
+
+.daily-word-list span {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--blue-soft);
+  font-size: 1.55rem;
+}
+
+.daily-word-list small {
+  display: block;
+  color: var(--muted);
+}
+
+.metric-stack {
+  display: grid;
+  gap: 12px;
+}
+
 .lesson-path {
   position: relative;
   display: grid;
   justify-items: center;
-  gap: 18px;
+  gap: 12px;
 }
 
 .lesson-path::before {
@@ -317,7 +377,7 @@ select {
   position: relative;
   z-index: 1;
   width: min(220px, 76%);
-  min-height: 72px;
+  min-height: 58px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -353,15 +413,15 @@ select {
 }
 
 .path-node.done {
-  background: #e9fbf0;
+  background: var(--lime-soft);
   border-color: var(--green);
   box-shadow: 0 6px 0 #3f9d59;
 }
 
 .path-node.current {
-  background: #1fc66d;
-  border-color: #18aa5b;
-  box-shadow: 0 7px 0 #118447;
+  background: var(--green);
+  border-color: #48ad00;
+  box-shadow: 0 7px 0 #46a302;
   color: #fff;
 }
 
@@ -735,10 +795,12 @@ select {
 .section-grid,
 .chat-section {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 390px;
+  grid-template-columns: 240px minmax(0, 1fr);
   gap: 24px;
   padding: 34px;
   align-items: start;
+  max-width: 1220px;
+  margin: 0 auto;
 }
 
 .word-grid {
@@ -896,20 +958,26 @@ select {
 }
 
 .chat-box {
-  min-height: 460px;
+  min-height: 420px;
   display: grid;
   grid-template-rows: 1fr auto;
 }
 
 .teacher-panel {
   display: grid;
-  align-content: start;
+  align-content: center;
   justify-items: center;
+  min-height: 420px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 18px;
 }
 
 .teacher-avatar {
-  width: 170px;
-  height: 190px;
+  width: 168px;
+  height: 182px;
   position: relative;
   margin: 0 auto;
   display: grid;
@@ -921,7 +989,7 @@ select {
   width: 132px;
   height: 132px;
   position: relative;
-  border: 4px solid #15948f;
+  border: 4px solid var(--blue);
   border-radius: 50% 50% 44% 44%;
   background: linear-gradient(180deg, #ffe1c7, #f4b98d);
   box-shadow: 0 10px 0 #d79569;
@@ -972,7 +1040,7 @@ select {
   width: 94px;
   height: 54px;
   border-radius: 8px 8px 0 0;
-  background: var(--teal);
+  background: var(--blue);
   margin-top: -8px;
 }
 
