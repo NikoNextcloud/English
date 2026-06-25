@@ -1005,6 +1005,7 @@ select {
 
 .ai-status {
   display: grid;
+  grid-template-columns: auto 1fr;
   gap: 4px;
   max-width: 520px;
   margin-top: 16px;
@@ -1014,8 +1015,24 @@ select {
   background: #fff;
 }
 
+.ai-status strong,
+.ai-status small {
+  grid-column: 2;
+}
+
 .ai-status small {
   color: var(--muted);
+}
+
+.connection-dot {
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--coral);
+  box-shadow: 0 0 0 0 rgba(255, 107, 95, 0.55);
+  animation: pulseOffline 1.5s ease-out infinite;
 }
 
 .ai-status.online {
@@ -1023,9 +1040,31 @@ select {
   background: #e9fbf0;
 }
 
+.ai-status.online .connection-dot {
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(85, 184, 112, 0.55);
+  animation-name: pulseOnline;
+}
+
 .ai-status.demo {
   border-color: #f2d48c;
   background: #fff6dc;
+}
+
+.ai-status.demo .connection-dot {
+  background: var(--coral);
+}
+
+@keyframes pulseOnline {
+  0% { box-shadow: 0 0 0 0 rgba(85, 184, 112, 0.55); }
+  70% { box-shadow: 0 0 0 12px rgba(85, 184, 112, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(85, 184, 112, 0); }
+}
+
+@keyframes pulseOffline {
+  0% { box-shadow: 0 0 0 0 rgba(255, 107, 95, 0.55); }
+  70% { box-shadow: 0 0 0 12px rgba(255, 107, 95, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 107, 95, 0); }
 }
 
 .messages {

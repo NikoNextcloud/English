@@ -192,13 +192,11 @@ function appTemplate() {
       <div class="nav-pills">
         <button data-scroll="dashboard">Пътека</button>
         <button data-scroll="lesson">Урок</button>
-        <button data-scroll="coach">Coach</button>
         <button data-scroll="chat">AI чат</button>
       </div>
     </nav>
     ${dashboardTemplate()}
     ${lessonTemplate()}
-    ${coachTemplate()}
     ${chatTemplate()}
     ${statsTemplate()}
   `;
@@ -490,21 +488,6 @@ function shuffle(items) {
   return [...items].sort(() => Math.random() - 0.5);
 }
 
-function coachTemplate() {
-  const grammar = grammarForLesson(nextLesson());
-  return `
-    <section id="coach" class="coach-section compact-coach">
-      <div class="coach-card">
-        <span>🧩</span>
-        <h3>${grammar.title}</h3>
-        <p>${grammar.rule}</p>
-        <strong>${grammar.example}</strong>
-        <button class="primary-button" data-start-lesson>Тренирай в урока</button>
-      </div>
-    </section>
-  `;
-}
-
 function chatTemplate() {
   return `
     <section id="chat" class="chat-section">
@@ -521,6 +504,7 @@ function chatTemplate() {
           <div class="teacher-neck"></div>
         </div>
         <div class="ai-status ${state.aiStatus === "active" ? "online" : "demo"}">
+          <span class="connection-dot" aria-hidden="true"></span>
           <strong>${state.aiStatus === "active" ? "AI активен" : state.aiStatus === "checking" ? "Проверявам AI връзката..." : "Демо режим"}</strong>
           <small>${state.aiStatus === "active" ? "Свързан е със server и OpenAI API ключ." : "Стартирай server-а с OPENAI_API_KEY, за да работи с реален AI."}</small>
         </div>
