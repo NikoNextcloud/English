@@ -181,6 +181,14 @@ function registerTemplate() {
 }
 
 function appTemplate() {
+  if (lessonRun) {
+    return `
+      <main class="lesson-focus-mode">
+        ${lessonTemplate()}
+      </main>
+    `;
+  }
+
   return `
     <nav class="topbar">
       <strong>WordJoy English</strong>
@@ -321,9 +329,9 @@ function lessonSlideTemplate(lesson) {
   return `
     <section id="lesson" class="lesson-stage single duo-lesson">
       <div class="lesson-run-top">
-        <button class="close-lesson" data-cancel-lesson title="Затвори">×</button>
         <div class="mini-progress"><span style="width:${progress}%"></span></div>
         <strong class="heart-count">${"♥".repeat(lessonRun.hearts)}${"♡".repeat(5 - lessonRun.hearts)}</strong>
+        <button class="close-lesson" data-cancel-lesson title="Затвори">×</button>
       </div>
       <div class="slide-shell duo-shell">
         ${slideTemplate(slide, answer)}

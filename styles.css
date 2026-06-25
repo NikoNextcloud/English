@@ -564,7 +564,7 @@ select {
   max-width: 860px;
   margin: 0 auto 18px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 14px;
   align-items: center;
 }
@@ -578,6 +578,35 @@ select {
   color: var(--muted);
   font-size: 1.6rem;
   font-weight: 900;
+}
+
+.lesson-focus-mode {
+  min-height: 100vh;
+  display: grid;
+  align-items: start;
+  background: var(--paper);
+  padding: 18px 0 34px;
+}
+
+.lesson-focus-mode .lesson-stage {
+  width: min(100%, 720px);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.lesson-focus-mode .lesson-run-top {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  padding: 10px 0;
+  background: var(--paper);
+}
+
+.lesson-focus-mode .close-lesson {
+  justify-self: end;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  color: var(--ink);
 }
 
 .heart-count {
