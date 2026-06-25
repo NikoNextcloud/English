@@ -492,9 +492,6 @@ function chatTemplate() {
   return `
     <section id="chat" class="chat-section">
       <div class="teacher-panel">
-        <p class="eyebrow">AI Teacher</p>
-        <h2>Разговор с виртуален учител</h2>
-        <p>Натисни микрофона, кажи изречение на английски и учителят ще ти отговори с глас.</p>
         <div class="teacher-avatar ${state.aiSpeaking ? "speaking" : ""}" aria-hidden="true">
           <div class="teacher-head">
             <div class="teacher-eye left"></div>
@@ -504,9 +501,7 @@ function chatTemplate() {
           <div class="teacher-neck"></div>
         </div>
         <div class="ai-status ${state.aiStatus === "active" ? "online" : "demo"}">
-          <span class="connection-dot" aria-hidden="true"></span>
-          <strong>${state.aiStatus === "active" ? "AI активен" : state.aiStatus === "checking" ? "Проверявам AI връзката..." : "Демо режим"}</strong>
-          <small>${state.aiStatus === "active" ? "Свързан е със server и OpenAI API ключ." : "Стартирай server-а с OPENAI_API_KEY, за да работи с реален AI."}</small>
+          <span class="connection-dot" title="${state.aiStatus === "active" ? "AI активен" : "AI не е свързан"}" aria-label="${state.aiStatus === "active" ? "AI активен" : "AI не е свързан"}"></span>
         </div>
       </div>
       <div class="chat-box">

@@ -1004,29 +1004,14 @@ select {
 }
 
 .ai-status {
+  width: 22px;
+  height: 22px;
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px;
-  max-width: 520px;
-  margin-top: 16px;
-  padding: 14px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: #fff;
-}
-
-.ai-status strong,
-.ai-status small {
-  grid-column: 2;
-}
-
-.ai-status small {
-  color: var(--muted);
+  place-items: center;
+  margin: 8px auto 0;
 }
 
 .connection-dot {
-  grid-row: 1 / span 2;
-  align-self: center;
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -1036,8 +1021,7 @@ select {
 }
 
 .ai-status.online {
-  border-color: var(--green);
-  background: #e9fbf0;
+  background: transparent;
 }
 
 .ai-status.online .connection-dot {
@@ -1047,8 +1031,7 @@ select {
 }
 
 .ai-status.demo {
-  border-color: #f2d48c;
-  background: #fff6dc;
+  background: transparent;
 }
 
 .ai-status.demo .connection-dot {
