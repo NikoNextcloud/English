@@ -231,17 +231,20 @@ function dashboardTemplate() {
           `).join("")}
         </div>
       </div>
-      <div class="path-panel">
-        <div class="path-header">
-          <strong>Раздел ${Math.ceil(lessonNumber / 5)}</strong>
-          <small>Урок ${lessonNumber} от ${lessons.length}</small>
+      <div class="dashboard-lower-grid">
+        <div class="path-panel">
+          <div class="path-header">
+            <strong>Раздел ${Math.ceil(lessonNumber / 5)}</strong>
+            <small>Урок ${lessonNumber} от ${lessons.length}</small>
+          </div>
+          ${pathTemplate(lessons)}
         </div>
-        ${pathTemplate(lessons)}
-      </div>
-      <div class="metric-stack">
-        <div class="metric"><span>🔥</span><strong>${state.streak} дни</strong><small>дневна серия</small></div>
-        <div class="metric"><span>💎</span><strong>${state.xp} XP</strong><small>точки</small></div>
-        <div class="metric"><span>✍️</span><strong>AI writing</strong><small>във всеки урок</small></div>
+        <div class="metric-stack">
+          <div class="metric"><span>🔥</span><strong>${state.streak} дни</strong><small>дневна серия</small></div>
+          <div class="metric"><span>💎</span><strong>${state.xp} XP</strong><small>точки</small></div>
+          <div class="metric"><span>✍️</span><strong>AI writing</strong><small>във всеки урок</small></div>
+          <div class="metric"><span>🧩</span><strong>${grammarForLesson(lesson).title}</strong><small>днешна граматика</small></div>
+        </div>
       </div>
       <div class="progress-line"><span style="width:${courseProgress()}%"></span></div>
       <p class="progress-caption">${courseProgress()}% завършен курс за ниво ${levelName(state.activeLevel)}</p>
