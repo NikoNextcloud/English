@@ -9,6 +9,7 @@ const defaultState = {
   currentLessonId: "A2-lesson-1",
   reviews: {},
   chat: [{ from: "ai", text: "Hello! I am your English teacher. What is your name?" }],
+  aiStatus: "checking",
   stats: { correct: 0, total: 0, streakAnswers: 0 }
 };
 
@@ -113,6 +114,7 @@ function normalize(value) {
 function render() {
   document.getElementById("app").innerHTML = state.user ? appTemplate() : registerTemplate();
   bindEvents();
+  if (state.user && state.aiStatus === "checking") checkAiStatus();
 }
 
 function registerTemplate() {
@@ -432,7 +434,11 @@ function chatTemplate() {
       <div>
         <p class="eyebrow">AI Teacher</p>
         <h2>Разговор с виртуален учител</h2>
-        <p>Чатът поправя грешки, предлага нови думи и обяснява граматика. Когато приложението е стартирано със server и API ключ, работи с реален AI.</p>
+        <p>Чатът поправя грешки, предлага нови думи и обяснява граматика.</p>
+        <div class="ai-status ${state.aiStatus === "active" ? "online" : "demo"}">
+          <strong>${state.aiStatus === "active" ? "AI активен" : state.aiStatus === "checking" ? "Проверявам AI връзката..." : "Демо режим"}</strong>
+          <small>${state.aiStatus === "active" ? "Свързан е със server и OpenAI API ключ." : "Стартирай server-а с OPENAI_API_KEY, за да работи с реален AI."}</small>
+        </div>
       </div>
       <div class="chat-box">
         <div class="messages" id="messages">
@@ -614,6 +620,18 @@ function scheduleReviews(words) {
     next.setDate(next.getDate() + intervals[step]);
     state.reviews[word.id] = { step, next: next.toISOString(), english: word.english, bulgarian: word.bulgarian };
   });
+}
+
+async function checkAiStatus() {
+  try {
+    const response = await fetch("/api/teacher/status");
+    const data = await response.json();
+    state.aiStatus = data.ready ? "active" : "demo";
+  } catch (error) {
+    state.aiStatus = "demo";
+  }
+  saveState();
+  render();
 }
 
 async function askAiTeacher(text) {

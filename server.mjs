@@ -30,6 +30,14 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && url.pathname === "/api/teacher/status") {
+    sendJson(response, 200, {
+      ready: Boolean(process.env.OPENAI_API_KEY),
+      model
+    });
+    return;
+  }
+
   if (request.method !== "GET") {
     sendJson(response, 405, { error: "Method not allowed" });
     return;
