@@ -304,7 +304,7 @@ select {
 }
 
 .daily-words-panel {
-  grid-row: span 2;
+  grid-row: auto;
 }
 
 .path-header {
@@ -353,7 +353,12 @@ select {
 
 .metric-stack {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.metric-stack .metric:last-child {
+  grid-column: 1 / -1;
 }
 
 .lesson-path {
@@ -795,7 +800,7 @@ select {
 .section-grid,
 .chat-section {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
   padding: 34px;
   align-items: start;
@@ -805,7 +810,7 @@ select {
 
 .word-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -937,7 +942,7 @@ select {
 .grammar-grid,
 .stats-section {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -1240,6 +1245,17 @@ select {
 
   .duo-dashboard {
     grid-template-columns: 1fr;
+  }
+
+  .metric-stack,
+  .word-grid,
+  .grammar-grid,
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-stack .metric:last-child {
+    grid-column: auto;
   }
 
   .path-node,
