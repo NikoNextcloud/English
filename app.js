@@ -432,7 +432,7 @@ function chatTemplate() {
       <div>
         <p class="eyebrow">AI Teacher</p>
         <h2>Разговор с виртуален учител</h2>
-        <p>Чатът поправя грешки, предлага нови думи и обяснява граматика. В MVP версията е локален симулатор.</p>
+        <p>Чатът поправя грешки, предлага нови думи и обяснява граматика. Когато приложението е стартирано със server и API ключ, работи с реален AI.</p>
       </div>
       <div class="chat-box">
         <div class="messages" id="messages">
@@ -527,11 +527,12 @@ function bindEvents() {
     const text = new FormData(event.target).get("message").trim();
     if (!text) return;
     state.chat.push({ from: "user", text });
-    state.chat.push({ from: "ai", text: teacherReply(text) });
+    state.chat.push({ from: "ai", text: "Thinking..." });
     event.target.reset();
     saveState();
     render();
     document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
+    askAiTeacher(text);
   });
 }
 
@@ -613,6 +614,38 @@ function scheduleReviews(words) {
     next.setDate(next.getDate() + intervals[step]);
     state.reviews[word.id] = { step, next: next.toISOString(), english: word.english, bulgarian: word.bulgarian };
   });
+}
+
+async function askAiTeacher(text) {
+  const pendingIndex = state.chat.findLastIndex((message) => message.from === "ai" && message.text === "Thinking...");
+  try {
+    const recentMessages = state.chat
+      .filter((message) => message.text !== "Thinking...")
+      .slice(-10)
+      .map((message) => ({ role: message.from === "ai" ? "assistant" : "user", content: message.text }));
+
+    const response = await fetch("/api/teacher", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: text,
+        level: state.activeLevel,
+        userName: state.user?.name || "student",
+        lesson: nextLesson().title,
+        recentMessages
+      })
+    });
+
+    if (!response.ok) throw new Error("AI endpoint unavailable");
+    const data = await response.json();
+    state.chat[pendingIndex].text = data.reply || teacherReply(text);
+  } catch (error) {
+    state.chat[pendingIndex].text = teacherReply(text);
+  }
+
+  saveState();
+  render();
+  document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" });
 }
 
 function teacherReply(text) {

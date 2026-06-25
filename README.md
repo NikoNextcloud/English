@@ -23,14 +23,44 @@ MVP уеб приложение за обучение по английски е
 
 ## Стартиране
 
-Отвори `index.html` в браузър.
+### Без AI backend
+
+Отвори `index.html` в браузър. Приложението работи, но AI Teacher използва локален демо отговор.
+
+### С реален AI Teacher
+
+1. Инсталирай Node.js 18 или по-нова версия.
+2. Създай API ключ от OpenAI dashboard.
+3. Копирай `.env.example` като `.env` и попълни:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-5.5
+PORT=8787
+```
+
+4. Стартирай:
+
+```bash
+npm start
+```
+
+5. Отвори:
+
+```text
+http://127.0.0.1:8787
+```
+
+Важно: не слагай OpenAI API ключ директно в `app.js` или в браузъра. Ключът трябва да стои само в server средата.
 
 За GitHub Pages качи папката `english-learning-a2-c1` в repository и избери Pages deployment от branch.
+
+За GitHub Pages AI Teacher ще остане в демо режим, освен ако не добавиш отделен backend, например Render, Railway, Vercel Function или Supabase Edge Function.
 
 ## Следващи стъпки за реален продукт
 
 - Свързване с Firebase или Supabase за Users, Lessons, Words и Progress
 - Реален Google OAuth
-- Реален AI чат през API
+- Реален AI чат през `/api/teacher` backend endpoint
 - Истински аудио файлове за думите
 - Админ панел за добавяне на думи и уроци
