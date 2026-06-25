@@ -127,9 +127,10 @@ function dictateToChat() {
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
   recognition.onresult = (event) => {
-    const input = document.querySelector("#chatForm input[name='message']");
-    if (input) input.value = event.results[0][0].transcript;
+    const text = event.results[0][0].transcript.trim();
+    if (text) sendChatMessage(text);
   };
+  recognition.onstart = () => showToast("Слушам...");
   recognition.start();
 }
 
@@ -492,12 +493,7 @@ function shuffle(items) {
 function coachTemplate() {
   const grammar = grammarForLesson(nextLesson());
   return `
-    <section id="coach" class="coach-section">
-      <div>
-        <p class="eyebrow">Grammar + AI writing</p>
-        <h2>Граматиката вече е част от урока.</h2>
-        <p>Вместо отделни сухи правила, всяка сесия ти дава мини концепция, задача и AI писмен feedback с точки.</p>
-      </div>
+    <section id="coach" class="coach-section compact-coach">
       <div class="coach-card">
         <span>🧩</span>
         <h3>${grammar.title}</h3>
@@ -515,7 +511,7 @@ function chatTemplate() {
       <div class="teacher-panel">
         <p class="eyebrow">AI Teacher</p>
         <h2>Разговор с виртуален учител</h2>
-        <p>Пиши или говори. Учителят може да ти отговори с глас и да ти даде кратка поправка.</p>
+        <p>Натисни микрофона, кажи изречение на английски и учителят ще ти отговори с глас.</p>
         <div class="teacher-avatar ${state.aiSpeaking ? "speaking" : ""}" aria-hidden="true">
           <div class="teacher-head">
             <div class="teacher-eye left"></div>
@@ -533,11 +529,9 @@ function chatTemplate() {
         <div class="messages" id="messages">
           ${state.chat.map((message) => `<p class="${message.from}">${message.text}</p>`).join("")}
         </div>
-        <form id="chatForm" class="chat-form">
-          <button type="button" class="mic-button" id="dictateButton" title="Говори">🎙️</button>
-          <input name="message" placeholder="My name is Ivan..." autocomplete="off" />
-          <button type="submit">Изпрати</button>
-        </form>
+        <div class="voice-chat-actions">
+          <button type="button" class="mic-button voice-only" id="dictateButton" title="Говори">🎙️ Говори с AI</button>
+        </div>
       </div>
     </section>
   `;
@@ -619,18 +613,6 @@ function bindEvents() {
 
   document.querySelector("#dictateButton")?.addEventListener("click", dictateToChat);
 
-  document.querySelector("#chatForm")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const text = new FormData(event.target).get("message").trim();
-    if (!text) return;
-    state.chat.push({ from: "user", text });
-    state.chat.push({ from: "ai", text: "Thinking..." });
-    event.target.reset();
-    saveState();
-    render();
-    scrollChatToBottom();
-    askAiTeacher(text);
-  });
 }
 
 function startLesson() {
@@ -752,7 +734,7 @@ function localWritingEvaluation(slide, answer) {
   return {
     score,
     correction: hasTarget ? answer.trim() : `${answer.trim()} (${slide.targetWord})`,
-    explanation: hasTarget ? "Добър опит. AI backend не е достъпен, затова оценката е локална." : `Опитай да използваш думата "${slide.targetWord}".`
+    explanation: hasTarget ? "Добър опит. Продължи с още едно по-дълго изречение." : `Опитай да използваш думата "${slide.targetWord}".`
   };
 }
 
@@ -828,6 +810,16 @@ async function askAiTeacher(text) {
   render();
   scrollChatToBottom();
   speakTeacher(reply);
+}
+
+function sendChatMessage(text) {
+  if (!text) return;
+  state.chat.push({ from: "user", text });
+  state.chat.push({ from: "ai", text: "Thinking..." });
+  saveState();
+  render();
+  scrollChatToBottom();
+  askAiTeacher(text);
 }
 
 function scrollChatToBottom() {
